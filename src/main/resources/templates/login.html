@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Control de empleados</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+          crossorigin="anonymous">
+
+    <style>
+
+        /* 🔵 Fondo con imagen */
+        body {
+            margin: 0;
+            height: 100vh;
+            background-image: url('/images/Captura.PNG');
+            background-size: 1970px 980px;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: "Poppins", sans-serif;
+        }
+
+        /* 🔵 Tarjeta translúcida con degradado */
+        .login-card {
+            background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.80),
+                    rgba(240, 240, 240, 0.55)
+            ); /* transparente con degradado */
+
+            backdrop-filter: blur(8px); /* 🔥 efecto vidrio */
+            -webkit-backdrop-filter: blur(8px);
+
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            padding: 40px 35px;
+            width: 100%;
+            max-width: 420px;
+            animation: fadeIn 0.6s ease-in-out;
+            text-align: center;
+        }
+
+        .login-card h3 {
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #005dc1;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #00c6ff);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0056b3, #0098cc);
+            transform: scale(1.04);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-card">
+
+    <h3>Inicio de Sesión</h3>
+
+    <!-- Mensaje de error -->
+    <div th:if="${param.error}">
+        <div class="alert alert-danger text-center">Usuario o contraseña incorrectos</div>
+    </div>
+
+    <!-- Mensaje logout -->
+    <div th:if="${param.logout}">
+        <div class="alert alert-primary text-center">Sesión cerrada exitosamente</div>
+    </div>
+
+    <!-- FORMULARIO -->
+    <form th:action="@{/login}" method="post">
+
+        <div class="form-group text-left">
+            <label for="username">Correo electrónico</label>
+            <input type="text" id="username" name="username" class="form-control" required>
+        </div>
+
+        <div class="form-group text-left">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+
+        <button class="btn btn-primary btn-block mt-3" type="submit">
+            Iniciar sesión
+        </button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        crossorigin="anonymous"></script>
+
+<footer style="
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    font-size: 13px;
+    letter-spacing: 1px;
+    color: white;
+    text-shadow: 1px 1px 2px #000;
+    font-weight: 600;
+">
+    © 2025 PLATFORM DEVELOPED BY ABRAHAM I. M. & Max C. — DEV &  DATA ARCHITECT.<br>
+    ALL RIGHTS RESERVED. CO. LTD. | PRIVACY POLICY
+</footer>
+
+
+</body>
+</html>
+

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
+<head th:replace="layout/layout :: head">
+    <meta charset="utf-8">
+</head>
+<body>
+
+<header th:replace="layout/layout :: header"></header>
+
+<div class="py-4 ml-5 mr-5">
+    <div class="card bg-light">
+        <div class="card-header" th:text="${titulo}"></div>
+        <div class="card-body">
+            <h4 class="card-title">
+
+                <!-- Agregar empleado -->
+                <a th:href="@{/form(supervisor=${supervisorSeleccionado}, sede=${sedeSeleccionada})}"
+                   class="btn btn-primary">
+                    Agregar Nuevo empleado
+                </a>
+
+
+                <!-- Exportar PDF (solo programador) -->
+                <a sec:authorize="authentication.name == 'programador'"
+                   th:href="@{/exportarPDF}" class="btn btn-secondary">Exportar a PDF</a>
+
+                <!-- Exportar Excel (solo programador) -->
+                <a sec:authorize="authentication.name == 'programador'"
+                   th:href="@{'/exportarExcel?sedeId=' + ${sedeSeleccionada}}"
+                   class="btn btn-success">Exportar a Excel</a>
+
+                <!-- Botón asistencia -->
+                <form th:action="@{/asistencias}" method="get" class="d-inline">
+                    <input type="hidden" name="sede" th:value="${sedeSeleccionada}">
+                    <button type="submit" class="btn btn-danger">
+                        Ir al Control de Asistencia
+                    </button>
+                </form>
+
+                <!-- Combo de sedes (solo programador) -->
+                <div th:if="${#authentication.name == 'programador'}" class="d-inline-block ms-3">
+                    <form th:action="@{/listar}" method="get" class="d-inline">
+                        <select id="sedeSelect" name="sede"
+                                class="form-select fw-semibold text-white text-center"
+                                style="background-color:#6607e3;border:none;color:white;font-size:1.0rem;
+                                       padding:0.45rem 1rem;border-radius:0.375rem;width:130px;
+                                       cursor:pointer;transition:0.3s ease;"
+                                onchange="this.form.submit()">
+
+                            <option th:each="s : ${sedes}"
+                                    th:value="${s.idSede}"
+                                    th:text="${s.nombre}"
+                                    th:selected="${s.idSede == sedeSeleccionada}">
+                            </option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Combo SUPERVISORES (usuarios normales) -->
+                <div th:if="${#authentication.name != 'programador'}" class="d-inline-block ms-3">
+
+                    <form th:action="@{/listar}" method="get" class="d-inline">
+
+                        <!-- Mantener sede -->
+                        <input type="hidden" name="sede" th:value="${sedeSeleccionada}">
+
+                        <select name="supervisor"
+                                class="form-select fw-semibold text-white text-center"
+                                style="background-color:#198754;border:none;color:white;font-size:1.0rem;
+                                       padding:0.45rem 1rem;border-radius:0.375rem;width:180px;
+                                       cursor:pointer;transition:0.3s ease;"
+                                onchange="this.form.submit()">
+
+                            <!-- Opción TODOS -->
+                            <option value="0"
+                                    th:selected="${supervisorSeleccionado == 0}">
+                                Todos los supervisores
+                            </option>
+
+                            <!-- Supervisores -->
+                            <option th:each="sup : ${supervisores}"
+                                    th:value="${sup.idSupervisor}"
+                                    th:text="${sup.nombre}"
+                                    th:selected="${sup.idSupervisor == supervisorSeleccionado}">
+                            </option>
+
+                        </select>
+                    </form>
+                </div>
+
+                <a th:href="@{/dashboard(sede=${sedeSeleccionada})}"
+                   class="btn btn-dark ms-3">
+                    📊 Dashboard
+                </a>
+
+            </h4>
+
+            <div th:if="${supervisorSeleccionado != null and supervisorSeleccionado > 0}"
+                 class="border border-dark rounded p-3 mb-5"
+                 style="background-color:#828282;color:white;">
+
+                <div class="d-flex justify-content-around align-items-center text-center">
+
+                    <div class="d-flex align-items-center gap-3 fw-bold fs-4">
+                        👥
+                        <span class="fw-bold fs-4" th:text="${totalAgentes}">0</span>
+                        <span>&nbsp;Agentes en Total </span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 fw-bold fs-4">
+                        ✅
+                        <span class="fw-bold fs-4" th:text="${agentesActivos}">0</span>
+                        <span>&nbsp;Agentes Activos</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3 fw-bold fs-4">
+                        ❌
+                        <span class="fw-bold fs-4" th:text="${agentesBaja}">0</span>
+                        <span>&nbsp;Agentes Cesados</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <table class="table table-hover table-bordered">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre Completo</th>
+                    <th>Nombre Corto</th>
+                    <th>Email</th>
+                    <th>Fecha Ingreso</th>
+                    <th>Cargo</th>
+                    <th>Teléfono</th>
+                    <th>Sexo</th>
+                    <th>DNI</th>
+                    <th>Condiciòn</th>
+                    <th>Estado</th>
+                    <th>Detalles</th>
+                    <th>Editar</th>
+                    <th sec:authorize="authentication.name == 'programador'">Eliminar</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="empleado, stat : ${empleados}"
+                    th:class="${stat.even} ? 'table-primary' : 'table-light'">
+                    <td th:text="${empleado.id}"></td>
+                    <td th:text="${empleado.nombreCompleto}"></td>
+                    <td th:text="${empleado.nombreCorto}"></td>
+                    <td th:text="${empleado.email}"></td>
+                    <td th:text="${empleado.fecha}"></td>
+                    <td th:text="${empleado.cargo}"></td>
+                    <td th:text="${empleado.telefono}"></td>
+                    <td th:text="${empleado.sexo}"></td>
+                    <td th:text="${empleado.dni}"></td>
+                    <td th:text="${empleado.condicion}"></td>
+                    <td th:text="${empleado.tipoEstado ? 'Activo' : 'Baja'}"></td>
+
+                    <td>
+                        <a class="btn btn-info btn-sm"
+                           th:href="@{/ver/} + ${empleado.id}">Detalles</a>
+                    </td>
+
+                    <td>
+                        <a class="btn btn-warning btn-sm"
+                           th:href="@{/form/} + ${empleado.id}">Editar</a>
+                    </td>
+
+                    <td sec:authorize="authentication.name == 'programador'">
+                        <a th:href="@{'/eliminar/' + ${empleado.id} + '?sedeId=' + ${sedeSeleccionada}}"
+                           class="btn btn-danger"
+                           onclick="return confirm('¿Seguro que deseas eliminar a este empleado?');">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <nav th:replace="paginator-nav :: paginator"></nav>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="layout/layout :: footer"></footer>
+
+</body>
+</html>

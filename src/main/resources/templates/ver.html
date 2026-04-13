@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/layout :: head">
+<meta charset="utf-8">
+</head>
+<body>
+
+	<header th:replace="layout/layout :: header"></header>
+	
+	<div class="container py-4">
+	   <div class="card bg-light">
+	       <div class="card-header" th:text="${titulo}">
+	       </div>
+	       <div class="card-body">
+	          <ul class="list-group">
+	             <li class="list-group-item active" th:text="${empleado.nombreCompleto}"></li>
+	             <li class="list-group-item" th:text="${empleado.nombreCorto}"></li>
+	             <li class="list-group-item" th:text="${empleado.email}"></li>
+	             <li class="list-group-item" th:text="${empleado.fecha}"></li>
+                  <li class="list-group-item" th:text="${empleado.cargo}"></li>
+	             <li class="list-group-item" th:text="${empleado.telefono}"></li>
+                  <li class="list-group-item" th:text="${empleado.sexo}"></li>
+	             <li class="list-group-item" th:text="${empleado.dni}"></li>
+	             <li class="list-group-item" th:text="${empleado.condicion}"></li>
+                  <li class="list-group-item"
+                      th:text="${empleado.tipoEstado} ? 'Activo' : 'Baja'"
+                      th:classappend="${empleado.tipoEstado} ? ' text-success' : ' text-danger'">
+                  </li>
+
+              </ul>
+	       </div>
+	   </div>
+	</div>
+	
+	<footer th:replace="layout/layout :: footer"></footer>
+</body>
+</html>

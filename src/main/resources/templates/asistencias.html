@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="layout/layout :: head">
+    <meta charset="utf-8">
+    <title>Control de Asistencia</title>
+</head>
+
+<body>
+
+<header th:replace="layout/layout :: header"></header>
+
+<div class="container mt-4">
+
+    <!-- ✅ ALERTAS (AQUÍ ES DONDE VAN) -->
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${exito}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${exito}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="m-0">Control de Asistencia Diaria</h5>
+            <form method="get" th:action="@{/asistencias}">
+                <select name="supervisor"
+                        class="form-select"
+                        style="width:200px;"
+                        onchange="this.form.submit()">
+                    <option value="">-- Seleccionar supervisor --</option>
+                    <option th:each="sup : ${supervisores}"
+                            th:value="${sup.idSupervisor}"
+                            th:text="${sup.nombre + ' ' + sup.apellido}"
+                            th:selected="${sup.idSupervisor == supervisorSeleccionado}">
+                    </option>
+                </select>
+
+                <input type="hidden" name="sede" th:value="${sedeSeleccionada}">
+            </form>
+        </div>
+
+        <div class="card-body">
+
+            <div th:if="${supervisorSeleccionado == null}">
+                <h6 class="text-danger fs-3">
+                    ⚠️ Seleccione un supervisor para poder registrar la asistencia.
+                </h6>
+                <hr>
+            </div>
+
+            <div th:if="${supervisorSeleccionado != null}">
+
+                <form id="formAsistencias"
+                      th:action="@{/asistencias/guardar}"
+                      method="post">
+
+                    <input type="hidden" name="supervisor" th:value="${supervisorSeleccionado}">
+                    <input type="hidden" name="sede" th:value="${sedeSeleccionada}">
+
+                    <!-- FECHA -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label for="fecha">Seleccionar fecha:</label>
+                            <input type="date"
+                                   id="fecha"
+                                   name="fecha"
+                                   class="form-control"
+                                   required>
+                        </div>
+                    </div>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function () {
+                            const inputFecha = document.getElementById("fecha");
+                            const hoy = new Date().toISOString().split("T")[0];
+                            inputFecha.min = hoy;
+                            inputFecha.max = hoy;
+                            inputFecha.value = hoy;
+                        });
+                    </script>
+
+                    <!-- TABLA -->
+                    <table class="table table-hover table-bordered align-middle">
+                        <thead class="table-dark">
+                        <tr>
+                            <th>Nombre Completo</th>
+                            <th>Nombre corto</th>
+                            <th>Email</th>
+                            <th>Asistencia</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="empleado, stat : ${empleados}"
+                            th:class="${stat.even} ? 'table-primary' : 'table-light'">
+
+                            <td th:text="${empleado.nombreCompleto}"></td>
+                            <td th:text="${empleado.nombreCorto}"></td>
+                            <td th:text="${empleado.email}"></td>
+
+                            <td>
+                                <select th:name="'estado_' + ${empleado.id}"
+                                        class="form-control asistencia-select"
+                                        required>
+                                    <option value="">Seleccionar</option>
+                                    <option th:each="estado : ${T(com.gestion.empleados.entidades.EstadoAsistencia).values()}"
+                                            th:value="${estado.name()}"
+                                            th:text="${estado.descripcion}">
+                                    </option>
+                                </select>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- BOTÓN -->
+                    <div class="text-end mt-3">
+                        <button type="submit"
+                                class="btn btn-success"
+                                onclick="return abrirResumen(event)">
+                            Guardar asistencias
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="modalResumen" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">📊 Resumen de Asistencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="detalleResumen" class="fs-5"></div>
+            </div>
+
+            <div class="modal-footer justify-content-center">
+                <button class="btn btn-success btn-lg"
+                        onclick="confirmarGuardado()">
+                    Confirmar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirResumen(event) {
+        event.preventDefault();
+
+        const selects = document.querySelectorAll('.asistencia-select');
+        const resumen = {};
+
+        for (let select of selects) {
+            if (!select.value) {
+                alert("⚠️ Debe marcar la asistencia de todos los agentes.");
+                return false;
+            }
+
+            const value = select.value;
+            const texto = select.options[select.selectedIndex].text;
+
+            if (!resumen[value]) {
+                resumen[value] = { texto: texto, total: 0 };
+            }
+            resumen[value].total++;
+        }
+
+        const contenedor = document.getElementById("detalleResumen");
+        contenedor.innerHTML = "";
+
+        Object.values(resumen).forEach(item => {
+            contenedor.innerHTML += `
+                <p><strong>${item.texto}:</strong> ${item.total}</p>
+            `;
+        });
+
+        new bootstrap.Modal(document.getElementById('modalResumen')).show();
+        return false;
+    }
+
+    function confirmarGuardado() {
+        document.getElementById("formAsistencias").submit();
+    }
+</script>
+
+<footer th:replace="layout/layout :: footer"></footer>
+
+</body>
+</html>
